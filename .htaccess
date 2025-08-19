@@ -1,0 +1,3 @@
+ReWriteEngine on
+RewriteRule ^([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)$ router.php?c=$1&a=$2
+RewriteRule ^([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)$ router.php?c=$1&a=$2&id=$3

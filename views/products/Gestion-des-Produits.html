@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Produits</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:'#4f46e5',secondary:'#6366f1'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+    <style>
+        :where([class^="ri-"])::before { content: "\f3c2"; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        .sidebar-item.active {
+            background-color: rgba(79, 70, 229, 0.1);
+            color: #4f46e5;
+            border-left: 3px solid #4f46e5;
+        }
+        .custom-checkbox {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .custom-checkbox:checked {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .custom-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        .custom-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .custom-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e5e7eb;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .switch-slider {
+            background-color: #4f46e5;
+        }
+        input:checked + .switch-slider:before {
+            transform: translateX(20px);
+        }
+        .custom-radio {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .custom-radio:checked {
+            border-color: #4f46e5;
+        }
+        .custom-radio:checked::after {
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4f46e5;
+        }
+        .custom-range {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            outline: none;
+        }
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+        }
+        .custom-range::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            border: none;
+        }
+        .tab-button {
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            border-bottom-color: #4f46e5;
+            color: #4f46e5;
+        }
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .status-active {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        .status-inactive {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .status-draft {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-md z-10 flex flex-col">
+            <div class="p-4 border-b flex items-center">
+                <span class="text-2xl font-['Pacifico'] text-primary">logo</span>
+                <button class="ml-auto w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700">
+                    <i class="ri-menu-fold-line ri-lg"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto py-4">
+                <nav class="px-2 space-y-1">
+                    <a href="https://readdy.ai/home/0315292c-8b12-4203-b5b3-638795f6d717/e30029dd-df0d-4103-b775-b6246b39259f" data-readdy="true" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-dashboard-line"></i>
+                        </div>
+                        <span>Tableau de bord</span>
+                    </a>
+                    <a href="#" class="sidebar-item active flex items-center px-3 py-3 text-sm font-medium rounded-md">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-shopping-bag-line"></i>
+                        </div>
+                        <span>Produits</span>
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <span>Clients</span>
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-shopping-cart-line"></i>
+                        </div>
+                        <span>Commandes</span>
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-bar-chart-line"></i>
+                        </div>
+                        <span>Rapports</span>
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-file-text-line"></i>
+                        </div>
+                        <span>Contenu</span>
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-settings-line"></i>
+                        </div>
+                        <span>Paramètres</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="p-4 border-t">
+                <div class="flex items-center">
+                    <img class="h-8 w-8 rounded-full" src="https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520a%2520young%2520business%2520man%2520with%2520short%2520hair%252C%2520wearing%2520a%2520business%2520suit%252C%2520high%2520quality%2520portrait%2520photo&width=200&height=200&seq=123&orientation=squarish" alt="Photo de profil">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700">Thomas Dubois</p>
+                        <p class="text-xs font-medium text-gray-500">Administrateur</p>
+                    </div>
+                    <button class="ml-auto w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700">
+                        <i class="ri-logout-box-line"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto bg-gray-50">
+            <!-- Header -->
+            <header class="bg-white shadow-sm z-10 sticky top-0">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-800">Produits</h1>
+                        <p class="text-sm text-gray-500 mt-1">Accueil > Catalogue > Produits</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" placeholder="Rechercher un produit..." class="w-64 pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                            <div class="absolute left-3 top-2.5 w-4 h-4 flex items-center justify-center text-gray-400">
+                                <i class="ri-search-line"></i>
+                            </div>
+                        </div>
+                        <button class="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100">
+                            <i class="ri-notification-3-line text-gray-600"></i>
+                            <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
+                        </button>
+                        <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100">
+                            <i class="ri-settings-3-line text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Products Content -->
+            <div class="p-6">
+                <!-- Action Bar -->
+                <div class="mb-6 flex justify-between items-center">
+                    <div class="text-sm font-medium text-gray-500">Mercredi, 21 Mai 2025</div>
+                    <div class="flex space-x-2">
+                        <button class="px-4 py-2 bg-white border border-gray-300 rounded-button text-sm font-medium text-gray-700 flex items-center whitespace-nowrap">
+                            <div class="w-4 h-4 flex items-center justify-center mr-2">
+                                <i class="ri-download-line"></i>
+                            </div>
+                            Exporter
+                        </button>
+                        <button id="addProductBtn" class="px-4 py-2 bg-primary text-white rounded-button text-sm font-medium flex items-center whitespace-nowrap">
+                            <div class="w-4 h-4 flex items-center justify-center mr-2">
+                                <i class="ri-add-line"></i>
+                            </div>
+                            Ajouter un produit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-white rounded shadow p-4 mb-6">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex-1 min-w-[200px]">
+                            <label for="categoryFilter" class="block text-xs font-medium text-gray-500 mb-1">Catégorie</label>
+                            <div class="relative">
+                                <select id="categoryFilter" class="w-full px-3 py-2 pr-8 border border-gray-300 rounded text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">Toutes les catégories</option>
+                                    <option value="chaussures">Chaussures</option>
+                                    <option value="vetements">Vêtements</option>
+                                    <option value="accessoires">Accessoires</option>
+                                    <option value="electronique">Électronique</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-[200px]">
+                            <label for="priceFilter" class="block text-xs font-medium text-gray-500 mb-1">Prix</label>
+                            <div class="relative">
+                                <select id="priceFilter" class="w-full px-3 py-2 pr-8 border border-gray-300 rounded text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">Tous les prix</option>
+                                    <option value="0-50">0 € - 50 €</option>
+                                    <option value="50-100">50 € - 100 €</option>
+                                    <option value="100-200">100 € - 200 €</option>
+                                    <option value="200+">200 € et plus</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-[200px]">
+                            <label for="stockFilter" class="block text-xs font-medium text-gray-500 mb-1">Stock</label>
+                            <div class="relative">
+                                <select id="stockFilter" class="w-full px-3 py-2 pr-8 border border-gray-300 rounded text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">Tous les stocks</option>
+                                    <option value="out">Rupture de stock</option>
+                                    <option value="low">Stock faible (< 10)</option>
+                                    <option value="in">En stock</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-[200px]">
+                            <label for="statusFilter" class="block text-xs font-medium text-gray-500 mb-1">Statut</label>
+                            <div class="relative">
+                                <select id="statusFilter" class="w-full px-3 py-2 pr-8 border border-gray-300 rounded text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">Tous les statuts</option>
+                                    <option value="active">Actif</option>
+                                    <option value="inactive">Inactif</option>
+                                    <option value="draft">Brouillon</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-[200px]">
+                            <label for="sortFilter" class="block text-xs font-medium text-gray-500 mb-1">Trier par</label>
+                            <div class="relative">
+                                <select id="sortFilter" class="w-full px-3 py-2 pr-8 border border-gray-300 rounded text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="name_asc">Nom (A-Z)</option>
+                                    <option value="name_desc">Nom (Z-A)</option>
+                                    <option value="price_asc">Prix (croissant)</option>
+                                    <option value="price_desc">Prix (décroissant)</option>
+                                    <option value="stock_asc">Stock (croissant)</option>
+                                    <option value="stock_desc">Stock (décroissant)</option>
+                                    <option value="date_desc">Date (récent)</option>
+                                    <option value="date_asc">Date (ancien)</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ml-auto flex items-end space-x-2">
+                            <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-button text-sm font-medium whitespace-nowrap">
+                                Réinitialiser
+                            </button>
+                            <button class="px-4 py-2 bg-primary text-white rounded-button text-sm font-medium whitespace-nowrap">
+                                Appliquer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="bg-white rounded shadow mb-6 overflow-hidden">
+                    <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-800">Liste des produits</h3>
+                        <div class="text-sm text-gray-500">125 produits au total</div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" id="selectAll" class="custom-checkbox">
+                                        </div>
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Produit
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        SKU
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Catégorie
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Prix
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Stock
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Statut
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520white%2520sneakers%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=1&orientation=squarish" alt="Sneakers" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Sneakers Blanc Premium</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-001
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Chaussures
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        89,99 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-red-600 font-medium">2</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-active">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="1" data-product-name="Sneakers Blanc Premium">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520black%2520leather%2520wallet%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=2&orientation=squarish" alt="Portefeuille" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Portefeuille Cuir Noir</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-042
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Accessoires
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        49,95 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-red-600 font-medium">3</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-active">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="2" data-product-name="Portefeuille Cuir Noir">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520wireless%2520earbuds%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=3&orientation=squarish" alt="Écouteurs" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Écouteurs Sans Fil Pro</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-128
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Électronique
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        129,00 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-orange-600 font-medium">5</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-active">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="3" data-product-name="Écouteurs Sans Fil Pro">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520smartphone%2520case%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=4&orientation=squarish" alt="Coque" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Coque Premium iPhone 16</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-256
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Accessoires
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        24,99 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-orange-600 font-medium">8</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-active">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="4" data-product-name="Coque Premium iPhone 16">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520smartwatch%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=5&orientation=squarish" alt="Montre" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Montre Connectée Ultra</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-189
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Électronique
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        199,00 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-orange-600 font-medium">4</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-active">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="5" data-product-name="Montre Connectée Ultra">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520tablet%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=6&orientation=squarish" alt="Tablette" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Tablette Pro 12"</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-302
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Électronique
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        549,00 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-green-600 font-medium">15</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-active">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="6" data-product-name="Tablette Pro 12&quot;">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520backpack%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=7&orientation=squarish" alt="Sac à dos" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Sac à Dos Urbain</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-143
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Accessoires
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        79,95 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-green-600 font-medium">12</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-inactive">
+                                            Inactif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="7" data-product-name="Sac à Dos Urbain">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520bluetooth%2520speaker%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=8&orientation=squarish" alt="Enceinte" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Enceinte Bluetooth Portable</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-217
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Électronique
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        69,99 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-green-600 font-medium">20</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-active">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="8" data-product-name="Enceinte Bluetooth Portable">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520t-shirt%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=9&orientation=squarish" alt="T-shirt" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">T-shirt Coton Bio</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-078
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Vêtements
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        29,95 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-green-600 font-medium">35</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-draft">
+                                            Brouillon
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="9" data-product-name="T-shirt Coton Bio">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="custom-checkbox product-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+                                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520sunglasses%2520on%2520plain%2520background%252C%2520product%2520photography&width=100&height=100&seq=10&orientation=squarish" alt="Lunettes" class="h-full w-full object-cover object-top">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Lunettes de Soleil Premium</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        PRD-156
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        Accessoires
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        119,00 €
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-green-600 font-medium">18</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-active">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex justify-end space-x-2">
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-primary" title="Modifier">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
+                                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600" title="Dupliquer">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                            <button class="delete-product-btn w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-red-500" title="Supprimer" data-product-id="10" data-product-name="Lunettes de Soleil Premium">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <span class="text-sm text-gray-700">Afficher</span>
+                            <div class="relative mx-2">
+                                <select class="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option>10</option>
+                                    <option selected>20</option>
+                                    <option>50</option>
+                                    <option>100</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-700">produits par page</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i class="ri-arrow-left-s-line"></i>
+                            </button>
+                            <button class="px-3 py-1 border border-gray-300 rounded text-sm bg-primary text-white">1</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">2</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">3</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">4</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">5</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+                                <i class="ri-arrow-right-s-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Product Modal (Hidden by default) -->
+    <div id="productModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+                <h3 class="text-lg font-semibold text-gray-800">Ajouter un produit</h3>
+                <button id="closeProductModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="ri-close-line ri-lg"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Nom du produit</label>
+                            <input type="text" id="productName" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="productSKU" class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                            <input type="text" id="productSKU" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="productCategory" class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                            <div class="relative">
+                                <select id="productCategory" class="w-full px-4 py-2 pr-8 border border-gray-300 rounded appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">Sélectionner une catégorie</option>
+                                    <option value="1">Chaussures</option>
+                                    <option value="2">Vêtements</option>
+                                    <option value="3">Accessoires</option>
+                                    <option value="4">Électronique</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="productBrand" class="block text-sm font-medium text-gray-700 mb-1">Marque</label>
+                            <div class="relative">
+                                <select id="productBrand" class="w-full px-4 py-2 pr-8 border border-gray-300 rounded appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">Sélectionner une marque</option>
+                                    <option value="1">Nike</option>
+                                    <option value="2">Adidas</option>
+                                    <option value="3">Puma</option>
+                                    <option value="4">Apple</option>
+                                    <option value="5">Samsung</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="productPrice" class="block text-sm font-medium text-gray-700 mb-1">Prix (€)</label>
+                            <input type="number" id="productPrice" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="productStock" class="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                            <input type="number" id="productStock" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="productDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea id="productDescription" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Images du produit</label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-center">
+                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mb-2">
+                                    <i class="ri-upload-2-line ri-lg"></i>
+                                </div>
+                                <p class="text-sm text-gray-500">Glisser ou cliquer pour ajouter</p>
+                            </div>
+                            <div class="relative border border-gray-200 rounded-lg overflow-hidden">
+                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520white%2520sneakers%2520on%2520plain%2520background%252C%2520product%2520photography&width=200&height=200&seq=10&orientation=squarish" alt="Aperçu produit" class="w-full h-full object-cover object-top">
+                                <button class="absolute top-2 right-2 w-6 h-6 rounded-full bg-white shadow flex items-center justify-center text-red-500">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </div>
+                            <div class="relative border border-gray-200 rounded-lg overflow-hidden">
+                                <img src="https://readdy.ai/api/search-image?query=modern%2520minimalist%2520white%2520sneakers%2520side%2520view%2520on%2520plain%2520background%252C%2520product%2520photography&width=200&height=200&seq=11&orientation=squarish" alt="Aperçu produit" class="w-full h-full object-cover object-top">
+                                <button class="absolute top-2 right-2 w-6 h-6 rounded-full bg-white shadow flex items-center justify-center text-red-500">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Variations</label>
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-sm font-medium text-gray-700">Tailles disponibles</h4>
+                                <button type="button" class="text-primary hover:text-primary-dark text-sm font-medium">+ Ajouter</button>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="size38" class="custom-checkbox mr-2">
+                                    <label for="size38" class="text-sm text-gray-700">38</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="size39" class="custom-checkbox mr-2" checked>
+                                    <label for="size39" class="text-sm text-gray-700">39</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="size40" class="custom-checkbox mr-2" checked>
+                                    <label for="size40" class="text-sm text-gray-700">40</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="size41" class="custom-checkbox mr-2" checked>
+                                    <label for="size41" class="text-sm text-gray-700">41</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="size42" class="custom-checkbox mr-2" checked>
+                                    <label for="size42" class="text-sm text-gray-700">42</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="size43" class="custom-checkbox mr-2">
+                                    <label for="size43" class="text-sm text-gray-700">43</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="size44" class="custom-checkbox mr-2">
+                                    <label for="size44" class="text-sm text-gray-700">44</label>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-sm font-medium text-gray-700">Couleurs disponibles</h4>
+                                <button type="button" class="text-primary hover:text-primary-dark text-sm font-medium">+ Ajouter</button>
+                            </div>
+                            <div class="flex flex-wrap gap-3 mb-4">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="colorWhite" class="custom-checkbox mr-2" checked>
+                                    <div class="w-4 h-4 rounded-full bg-white border border-gray-300 mr-1"></div>
+                                    <label for="colorWhite" class="text-sm text-gray-700">Blanc</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="colorBlack" class="custom-checkbox mr-2">
+                                    <div class="w-4 h-4 rounded-full bg-black mr-1"></div>
+                                    <label for="colorBlack" class="text-sm text-gray-700">Noir</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="colorBlue" class="custom-checkbox mr-2">
+                                    <div class="w-4 h-4 rounded-full bg-blue-500 mr-1"></div>
+                                    <label for="colorBlue" class="text-sm text-gray-700">Bleu</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="colorRed" class="custom-checkbox mr-2">
+                                    <div class="w-4 h-4 rounded-full bg-red-500 mr-1"></div>
+                                    <label for="colorRed" class="text-sm text-gray-700">Rouge</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Promotion</label>
+                        <div class="flex items-center mb-4">
+                            <label class="custom-switch mr-3">
+                                <input type="checkbox" id="promotionToggle">
+                                <span class="switch-slider"></span>
+                            </label>
+                            <label for="promotionToggle" class="text-sm text-gray-700">Activer la promotion</label>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="discountType" class="block text-sm font-medium text-gray-700 mb-1">Type de remise</label>
+                                <div class="relative">
+                                    <select id="discountType" class="w-full px-4 py-2 pr-8 border border-gray-300 rounded appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="percentage">Pourcentage (%)</option>
+                                        <option value="fixed">Montant fixe (€)</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="discountValue" class="block text-sm font-medium text-gray-700 mb-1">Valeur</label>
+                                <input type="number" id="discountValue" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="discountEndDate" class="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                                <input type="date" id="discountEndDate" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">SEO</label>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="metaTitle" class="block text-sm font-medium text-gray-700 mb-1">Méta-titre</label>
+                                <input type="text" id="metaTitle" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="metaDescription" class="block text-sm font-medium text-gray-700 mb-1">Méta-description</label>
+                                <textarea id="metaDescription" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelProductBtn" class="px-4 py-2 border border-gray-300 rounded-button text-sm font-medium text-gray-700 whitespace-nowrap">Annuler</button>
+                        <button type="button" id="saveAsDraftBtn" class="px-4 py-2 border border-gray-300 rounded-button text-sm font-medium text-gray-700 whitespace-nowrap">Enregistrer comme brouillon</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button text-sm font-medium whitespace-nowrap">Publier le produit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg w-full max-w-md p-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                    <i class="ri-delete-bin-line ri-2x text-red-500"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Confirmer la suppression</h3>
+                <p class="text-gray-600" id="deleteConfirmText">Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.</p>
+            </div>
+            <div class="flex justify-center space-x-3">
+                <button id="cancelDeleteBtn" class="px-4 py-2 border border-gray-300 rounded-button text-sm font-medium text-gray-700 whitespace-nowrap">Annuler</button>
+                <button id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-button text-sm font-medium whitespace-nowrap">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Product Modal
+            const productModal = document.getElementById('productModal');
+            const addProductBtn = document.getElementById('addProductBtn');
+            const closeProductModal = document.getElementById('closeProductModal');
+            const cancelProductBtn = document.getElementById('cancelProductBtn');
+            // Delete Confirmation Modal
+            const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+            const deleteButtons = document.querySelectorAll('.delete-product-btn');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const deleteConfirmText = document.getElementById('deleteConfirmText');
+            
+            let productToDelete = null;
+            // Select All Checkbox
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const productCheckboxes = document.querySelectorAll('.product-checkbox');
+            // Open Product Modal
+            function openProductModal() {
+                productModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            // Close Product Modal
+            function closeProductModal() {
+                productModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+
+            // Open Delete Confirmation Modal
+            function openDeleteModal(productId, productName) {
+                productToDelete = productId;
+                deleteConfirmText.textContent = `Êtes-vous sûr de vouloir supprimer "${productName}" ? Cette action est irréversible.`;
+                deleteConfirmModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+            // Close Delete Confirmation Modal
+            function closeDeleteModal() {
+                deleteConfirmModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                productToDelete = null;
+            }
+
+            // Delete Product
+            function deleteProduct(productId) {
+                // Here you would typically make an API call to delete the product
+                console.log(`Deleting product with ID: ${productId}`);
+                
+                // For demo purposes, we'll just hide the row
+                const productRow = document.querySelector(`[data-product-id="${productId}"]`).closest('tr');
+                if (productRow) {
+                    productRow.style.display = 'none';
+                }
+                
+                closeDeleteModal();
+            }
+            // Event Listeners for Product Modal
+            addProductBtn.addEventListener('click', openProductModal);
+            closeProductModal.addEventListener('click', closeProductModal);
+            cancelProductBtn.addEventListener('click', closeProductModal);
+
+            // Close modal when clicking outside
+            productModal.addEventListener('click', function(e) {
+                if (e.target === productModal) {
+                    closeProductModal();
+                }
+            });
+
+            // Event Listeners for Delete Confirmation Modal
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-product-id');
+                    const productName = this.getAttribute('data-product-name');
+                    openDeleteModal(productId, productName);
+                });
+            });
+
+            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+            confirmDeleteBtn.addEventListener('click', function() {
+                if (productToDelete) {
+                    deleteProduct(productToDelete);
+                }
+            });
+
+            // Close modal when clicking outside
+            deleteConfirmModal.addEventListener('click', function(e) {
+                if (e.target === deleteConfirmModal) {
+                    closeDeleteModal();
+                }
+            });
+
+            // Select All Checkbox Functionality
+            selectAllCheckbox.addEventListener('change', function() {
+                productCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+
+            // Update "Select All" checkbox state based on individual checkboxes
+            function updateSelectAllCheckbox() {
+                const checkedCount = document.querySelectorAll('.product-checkbox:checked').length;
+                selectAllCheckbox.checked = checkedCount === productCheckboxes.length;
+                selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < productCheckboxes.length;
+            }
+
+            productCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectAllCheckbox);
+            });
+
+            // Custom form elements functionality
+            const promotionToggle = document.getElementById('promotionToggle');
+            const discountFields = document.querySelectorAll('#discountType, #discountValue, #discountEndDate');
+            promotionToggle.addEventListener('change', function() {
+                discountFields.forEach(field => {
+                    field.disabled = !this.checked;
+                    if (this.checked) {
+                        field.parentElement.classList.remove('opacity-50');
+                    } else {
+                        field.parentElement.classList.add('opacity-50');
+                    }
+                });
+            });
+            // Initialize state
+            discountFields.forEach(field => {
+                field.disabled = !promotionToggle.checked;
+                if (!promotionToggle.checked) {
+                    field.parentElement.classList.add('opacity-50');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
