@@ -15,7 +15,7 @@
                         </div>
                         <span>Tableau de bord</span>
                     </a>
-                    <a href="/projet_web/products/enregister" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
+                    <a href="/projet_web/products/index" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
                         <div class="w-5 h-5 flex items-center justify-center mr-3">
                             <i class="ri-shopping-bag-line"></i>
                         </div>

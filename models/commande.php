@@ -15,7 +15,7 @@ class shopmodel{
 	} 
 
 	//Methodes
-	public function Addproducts()
+	public function Add()
 	{
 		$req = $this->con->prepare("INSERT INTO products Values(null, :nom_produit, :description, :prix, :prix_promo, :stock)");
 		$req->BindParam(":nom_produit", $this->nom_produit);

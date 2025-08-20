@@ -7,148 +7,188 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
-    <style>
-        :where([class^="ri-"])::before { content: "\f3c2"; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f9fafb;
-        }
-        .sidebar-item.active {
-            background-color: rgba(79, 70, 229, 0.1);
-            color: #4f46e5;
-            border-left: 3px solid #4f46e5;
-        }
-        .custom-checkbox {
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border: 2px solid #d1d5db;
-            border-radius: 4px;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .custom-checkbox:checked {
-            background-color: #4f46e5;
-            border-color: #4f46e5;
-        }
-        .custom-checkbox:checked::after {
-            content: '';
-            position: absolute;
-            left: 5px;
-            top: 2px;
-            width: 6px;
-            height: 10px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-        .custom-switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-        .custom-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .switch-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #e5e7eb;
-            transition: .4s;
-            border-radius: 24px;
-        }
-        .switch-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .switch-slider {
-            background-color: #4f46e5;
-        }
-        input:checked + .switch-slider:before {
-            transform: translateX(20px);
-        }
-        .custom-radio {
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border: 2px solid #d1d5db;
-            border-radius: 50%;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .custom-radio:checked {
-            border-color: #4f46e5;
-        }
-        .custom-radio:checked::after {
-            content: '';
-            position: absolute;
-            left: 3px;
-            top: 3px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #4f46e5;
-        }
-        .custom-range {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            background: #e5e7eb;
-            border-radius: 5px;
-            outline: none;
-        }
-        .custom-range::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #4f46e5;
-            cursor: pointer;
-        }
-        .custom-range::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #4f46e5;
-            cursor: pointer;
-            border: none;
-        }
-        .tab-button {
-            border-bottom: 2px solid transparent;
-        }
-        .tab-button.active {
-            border-bottom-color: #4f46e5;
-            color: #4f46e5;
-        }
-        .modal {
-            transition: opacity 0.3s ease;
-        }
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-    </style>
+   
+   <style>
+    :where([class^="ri-"])::before { content: "\f3c2"; }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f9fafb;
+    }
+
+    .sidebar-item.active {
+        background-color: rgba(79, 70, 229, 0.1);
+        color: #4f46e5;
+        border-left: 3px solid #4f46e5;
+    }
+
+    /* --- Checkboxes personnalisées --- */
+    .custom-checkbox {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        position: relative;
+        cursor: pointer;
+        display: inline-block;
+        vertical-align: middle;
+        transition: all 0.2s;
+        background-color: #fff;
+    }
+
+    .custom-checkbox:checked {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+    }
+
+    .custom-checkbox:checked::after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 2px;
+        width: 6px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+
+    /* --- Radios personnalisés --- */
+    .custom-radio {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #d1d5db;
+        border-radius: 50%;
+        position: relative;
+        cursor: pointer;
+        display: inline-block;
+        vertical-align: middle;
+        transition: all 0.2s;
+        background-color: #fff;
+    }
+
+    .custom-radio:checked {
+        border-color: #4f46e5;
+    }
+
+    .custom-radio:checked::before {
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: 4px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #4f46e5;
+    }
+
+    /* --- Switch personnalisé --- */
+    .custom-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+
+    .custom-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .switch-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e5e7eb;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+    .switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .switch-slider {
+        background-color: #4f46e5;
+    }
+
+    input:checked + .switch-slider:before {
+        transform: translateX(20px);
+    }
+
+    /* --- Range Slider personnalisé --- */
+    .custom-range {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 5px;
+        outline: none;
+    }
+
+    .custom-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #4f46e5;
+        cursor: pointer;
+    }
+
+    .custom-range::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #4f46e5;
+        cursor: pointer;
+        border: none;
+    }
+
+    /* --- Tabs --- */
+    .tab-button {
+        border-bottom: 2px solid transparent;
+    }
+
+    .tab-button.active {
+        border-bottom-color: #4f46e5;
+        color: #4f46e5;
+    }
+
+    /* --- Modal --- */
+    .modal {
+        transition: opacity 0.3s ease;
+    }
+
+    /* --- Input number --- */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
 
      <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -330,3 +370,4 @@
             });
         });
     </script>
+    

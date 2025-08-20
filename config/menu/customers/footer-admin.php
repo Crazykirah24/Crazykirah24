@@ -1,82 +1,152 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Product Modal Elements
-        const productModal = document.getElementById('productModal');
+        // Fonction pour afficher les toasts
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'} fixed bottom-4 right-4 px-4 py-2 rounded-md text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} animate-fade-in-up`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('animate-fade-out');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // Gestion du modal
         const addProductBtn = document.getElementById('addProductBtn');
+        const productModal = document.getElementById('productModal');
         const closeProductModal = document.getElementById('closeProductModal');
         const cancelProductBtn = document.getElementById('cancelProductBtn');
+        const productForm = document.getElementById('productForm');
+        const fileInput = document.getElementById('product-image-upload');
+        const uploadContainer = document.querySelector('.border-2.border-dashed');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
 
-        // Fonction pour ouvrir la modal
-        function openProductModal() {
-            console.log("Opening product modal");
-            productModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+        // Tableau pour stocker les fichiers sélectionnés
+        let selectedFiles = [];
+
+        if (addProductBtn) {
+            addProductBtn.addEventListener('click', function() {
+                productModal.classList.remove('hidden');
+                productForm.reset();
+                imagePreviewContainer.innerHTML = '';
+                selectedFiles = [];
+                fileInput.value = '';
+            });
         }
 
-        // Fonction pour fermer la modal
-        function closeProductModalFunc() {
-            productModal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
+        if (closeProductModal) {
+            closeProductModal.addEventListener('click', function() {
+                productModal.classList.add('hidden');
+                selectedFiles = [];
+                fileInput.value = '';
+            });
         }
 
-        // Écouteurs d'événements
-        addProductBtn.addEventListener('click', openProductModal);
-        closeProductModal.addEventListener('click', closeProductModalFunc);
-        cancelProductBtn.addEventListener('click', closeProductModalFunc);
+        if (cancelProductBtn) {
+            cancelProductBtn.addEventListener('click', function() {
+                productModal.classList.add('hidden');
+                selectedFiles = [];
+                fileInput.value = '';
+            });
+        }
 
-        // Fermer la modal en cliquant à l'extérieur
-        productModal.addEventListener('click', function(e) {
-            if (e.target === productModal) {
-                closeProductModalFunc();
-            }
-        });
+        // Gestion de l'upload d'images multiples
+        if (uploadContainer && fileInput) {
+            uploadContainer.addEventListener('click', function() {
+                fileInput.click();
+            });
 
+            fileInput.addEventListener('change', function(event) {
+                const newFiles = Array.from(event.target.files);
+                const validFiles = newFiles.filter(file => file.type.startsWith('image/'));
+                if (validFiles.length !== newFiles.length) {
+                    showToast('Certains fichiers ne sont pas des images valides.', 'error');
+                }
 
-        // Vérification que les éléments existent
-        if (!productModal) console.error("Modal element not found");
-        if (!addProductBtn) console.error("Add product button not found");
-        if (!closeProductModal) console.error("Close modal button not found");
-        if (!cancelProductBtn) console.error("Cancel button not found");
+                selectedFiles = [...selectedFiles, ...validFiles];
+
+                validFiles.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.createElement('div');
+                        preview.classList.add('relative', 'rounded-lg', 'overflow-hidden');
+                        preview.dataset.fileName = file.name;
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.classList.add('w-full', 'h-32', 'object-cover');
+                        preview.appendChild(img);
+                        const removeBtn = document.createElement('button');
+                        removeBtn.classList.add('absolute', 'top-1', 'right-1', 'bg-red-500', 'text-white', 'rounded-full', 'w-6', 'h-6', 'flex', 'items-center', 'justify-center');
+                        removeBtn.innerHTML = '<i class="ri-close-line"></i>';
+                        removeBtn.addEventListener('click', function() {
+                            preview.remove();
+                            selectedFiles = selectedFiles.filter(f => f.name !== file.name);
+                            const dataTransfer = new DataTransfer();
+                            selectedFiles.forEach(f => dataTransfer.items.add(f));
+                            fileInput.files = dataTransfer.files;
+                        });
+                        preview.appendChild(removeBtn);
+                        imagePreviewContainer.appendChild(preview);
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                const dataTransfer = new DataTransfer();
+                selectedFiles.forEach(file => dataTransfer.items.add(file));
+                fileInput.files = dataTransfer.files;
+            });
+
+            uploadContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadContainer.classList.add('bg-gray-100');
+            });
+
+            uploadContainer.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadContainer.classList.remove('bg-gray-100');
+            });
+
+            uploadContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadContainer.classList.remove('bg-gray-100');
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            });
+        }
+
+        // Soumission AJAX
+        if (productForm) {
+            productForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(productForm);
+                selectedFiles.forEach((file, index) => {
+                    formData.append(`sai_image_${index}`, file);
+                });
+
+                try {
+                    const response = await fetch('/projet_web/products/enregister', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Erreur HTTP : ${response.status} ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast('Produit ajouté avec succès !');
+                        productModal.classList.add('hidden');
+                        location.reload();
+                    } else {
+                        showToast(data.message || 'Erreur lors de l\'ajout du produit', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erreur réseau :', error);
+                    showToast(`Erreur réseau : ${error.message}`, 'error');
+                }
+            });
+        }
     });
-    function editProduct(productRow) {
-    // Récupération des données depuis la ligne du tableau
-    const productName = productRow.querySelector('.text-gray-900').textContent;
-    const productReference = productRow.querySelector('td:nth-child(2)').textContent;
-    const productDescription = productRow.querySelector('td:nth-child(3)').textContent;
-    const productCategory = productRow.querySelector('td:nth-child(4)').textContent;
-    const productBrand = productRow.querySelector('td:nth-child(5)').textContent;
-    const productPrice = productRow.querySelector('td:nth-child(6)').textContent;
-    const productPromoPrice = productRow.querySelector('td:nth-child(7)').textContent;
-    const productStock = productRow.querySelector('td:nth-child(8)').textContent;
-    const productStatus = productRow.querySelector('td:nth-child(9) span').textContent.trim().toLowerCase();
-    const productMaterial = productRow.getAttribute('data-material');
-    const productColor = productRow.getAttribute('data-color');
-    const productDimensions = productRow.getAttribute('data-dimensions');
-    const productWeight = productRow.getAttribute('data-weight');
-    const availability = productRow.getAttribute('data-availability');
-
-    // Remplissage du formulaire
-    document.getElementById('productName').value = productName;
-    document.getElementById('productReference').value = productReference;
-    document.getElementById('productDescription').value = productDescription;
-    document.getElementById('productCategory').value = productCategory.toLowerCase();
-    document.getElementById('productBrand').value = productBrand.toLowerCase();
-    document.getElementById('productPrice').value = parseFloat(productPrice.replace(' €', '').replace(',', '.'));
-    document.getElementById('productPromoPrice').value = productPromoPrice ? parseFloat(productPromoPrice.replace(' €', '').replace(',', '.')) : '';
-    document.getElementById('productStock').value = parseInt(productStock);
-    document.getElementById('productStatus').value = productStatus === 'actif' ? 'active' : productStatus === 'inactif' ? 'inactive' : 'draft';
-    document.getElementById('productMaterial').value = productMaterial || '';
-    document.getElementById('productColor').value = productColor || '';
-    document.getElementById('productDimensions').value = productDimensions || '';
-    document.getElementById('productWeight').value = productWeight || '';
-    
-    // Gestion de la disponibilité
-    const availabilityRadios = {
-        'now': 'availableNow',
-        'soon': 'availableSoon', 
-        'preorder': 'availablePreorder'
-    };
-    if (availability && availabilityRadios[availability]) {
-        document.getElementById(availabilityRadios[availability]).checked = true;
-    }
-</script>
+    </script>
