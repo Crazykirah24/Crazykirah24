@@ -1,4 +1,3 @@
-<script>
 document.addEventListener('DOMContentLoaded', function() {
     // Fonction pour afficher les toasts
     function showToast(message, type = 'success') {
@@ -271,6 +270,4 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteConfirmModal.classList.add('hidden');
         });
     }
-});   
-</script>
-  
+});

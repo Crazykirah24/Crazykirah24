@@ -1,3 +1,6 @@
-ReWriteEngine on
-RewriteRule ^([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)$ router.php?c=$1&a=$2
-RewriteRule ^([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)$ router.php?c=$1&a=$2&id=$3
+RewriteEngine On
+RewriteBase /projet_web/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)$ router.php?c=$1&a=$2 [QSA,L]
+RewriteRule ^([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)$ router.php?c=$1&a=$2&id=$3 [QSA,L]

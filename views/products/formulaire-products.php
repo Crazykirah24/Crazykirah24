@@ -292,17 +292,14 @@
             $status_class = '';
             $status_text = '';
             switch (strtolower($status)) {
-                case 'active':
                 case 'publié':
                     $status_class = 'bg-green-100 text-green-800';
                     $status_text = 'Publié';
                     break;
                 case 'inactive':
-                case 'masqué':
                     $status_class = 'bg-red-100 text-red-800';
                     $status_text = 'Inactif';
                     break;
-                case 'draft':
                 case 'brouillon':
                     $status_class = 'bg-gray-100 text-gray-800';
                     $status_text = 'Brouillon';
@@ -513,8 +510,6 @@
     </div>
 
     <?php include 'config/menu/customers/footer-admin.php'; ?>
-
-    <!-- JavaScript -->
     
 </body>
 </html>

@@ -20,7 +20,7 @@ session_start();
                     <h1 class="text-5xl font-bold text-gray-900 mb-6">Tout pour réussir vos études</h1>
                     <p class="text-xl text-gray-600 mb-8">Découvrez notre large sélection de fournitures universitaires de qualité. Livraison rapide et garantie satisfaction.</p>
                     <div class="flex space-x-4">
-                        <a href="/projet_web/customers/enregister" class="!rounded-button bg-primary text-white px-8 py-3 font-medium hover:bg-primary/90">
+                        <a href="/projet_web/customers/index" class="!rounded-button bg-primary text-white px-8 py-3 font-medium hover:bg-primary/90">
                             Découvrir
                         </a>
                         <a href="infos.html" class="!rounded-button border-2 border-gray-900 px-8 py-3 font-medium hover:bg-gray-100">

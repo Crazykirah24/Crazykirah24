@@ -89,7 +89,7 @@ class user {
                 header("Location: /projet_web/user/dashboard");
                 exit;
             } elseif ($_SESSION['role'] === "client") {
-                header("Location: /projet_web/customers/enregister");
+                header("Location: /projet_web/customers/index");
                 exit;
             } else {
                 session_destroy();

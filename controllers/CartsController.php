@@ -3,111 +3,135 @@ require 'models/cart.php';
 
 class Carts {
     private $cartModel;
+    private $productModel;
 
     public function __construct() {
         $this->cartModel = new cartsmodel();
+        $this->productModel = new productsmodel();
     }
 
     /**
      * Ajouter un produit au panier
      */
     public function enregister() {
-    header('Content-Type: application/json');
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        echo json_encode(['success' => false, 'message' => 'Méthode non autorisée']);
-        exit;
-    }
-    $data = json_decode(file_get_contents('php://input'), true);
-    $produit_id = isset($data['produit_id']) ? (int)$data['produit_id'] : null;
-    $nom = $data['nom'] ?? '';
-    $prix_original = (float)($data['prix_original'] ?? 0);
-    $promo_appliquee = (float)($data['promo_appliquee'] ?? 0);
-    $quantite = isset($data['quantite']) ? max(1, (int)$data['quantite']) : 1;
-    if (!$produit_id || !$nom) {
-        echo json_encode(['success' => false, 'message' => 'Données manquantes']);
-        exit;
-    }
-    try {
-        error_log("Données reçues dans enregister : " . print_r(compact('produit_id', 'nom', 'quantite', 'prix_original', 'promo_appliquee'), true));
-        if (isset($_SESSION['id'])) {
-            $this->cartModel->user_id = $_SESSION['id'];
-            $result = $this->cartModel->saveToDb($_SESSION['id'], $produit_id, $quantite, $prix_original, $promo_appliquee);
-            if (!$result['success']) {
-                echo json_encode($result);
-                exit;
-            }
-            $panier_db = $this->cartModel->loadFromDb($_SESSION['id']);
-            $_SESSION['panier'] = [];
-            foreach ($panier_db as $item) {
-                $_SESSION['panier'][$item['id_produit']] = $item;
-            }
-            $_SESSION['panier_synchronized'] = true; // Marquer comme synchronisé
-            $totaux = $this->cartModel->calculTotaux($panier_db);
-            $_SESSION['cart_count'] = $totaux['cart_count'];
-        } else {
-            if (!isset($_SESSION['panier'])) {
-                $_SESSION['panier'] = [];
-            }
-            if (isset($_SESSION['panier'][$produit_id])) {
-                $_SESSION['panier'][$produit_id]['quantite'] += $quantite;
-            } else {
-                $_SESSION['panier'][$produit_id] = [
-                    'id_produit' => $produit_id,
-                    'nom' => $nom,
-                    'quantite' => $quantite,
-                    'prix_original' => $prix_original,
-                    'promo_appliquee' => $promo_appliquee
-                ];
-            }
-            $totaux = $this->cartModel->calculTotaux(array_values($_SESSION['panier']));
-            $_SESSION['cart_count'] = $totaux['cart_count'];
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Méthode non autorisée']);
+            exit;
         }
-        echo json_encode([
-            'success' => true,
-            'cart_count' => $_SESSION['cart_count'],
-            'sous_total' => $totaux['sous_total'],
-            'total' => $totaux['total'],
-            'message' => "$nom ajouté au panier"
-        ]);
-    } catch (Exception $e) {
-        error_log("Erreur dans enregister : " . $e->getMessage());
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        $data = json_decode(file_get_contents('php://input'), true);
+        $produit_id = isset($data['produit_id']) ? (int)$data['produit_id'] : null;
+        $nom = $data['nom'] ?? '';
+        $prix_original = (float)($data['prix_original'] ?? 0);
+        $promo_appliquee = (float)($data['promo_appliquee'] ?? 0);
+        $quantite = isset($data['quantite']) ? max(1, (int)$data['quantite']) : 1;
+
+        if (!$produit_id || !$nom) {
+            echo json_encode(['success' => false, 'message' => 'Données manquantes']);
+            exit;
+        }
+
+        // Récupérer les informations du produit, y compris les images
+        $product = $this->productModel->getProductById($produit_id);
+        if (!$product) {
+            echo json_encode(['success' => false, 'message' => 'Produit non trouvé']);
+            exit;
+        }
+
+        $images = json_decode($product['images'], true) ?: [];
+
+        try {
+            error_log("Données reçues dans enregister : " . print_r(compact('produit_id', 'nom', 'quantite', 'prix_original', 'promo_appliquee', 'images'), true));
+            if (isset($_SESSION['id'])) {
+                $this->cartModel->user_id = $_SESSION['id'];
+                $result = $this->cartModel->saveToDb($_SESSION['id'], $produit_id, $quantite, $prix_original, $promo_appliquee);
+                if (!$result['success']) {
+                    echo json_encode($result);
+                    exit;
+                }
+                $panier_db = $this->cartModel->loadFromDb($_SESSION['id']);
+                $_SESSION['panier'] = [];
+                foreach ($panier_db as $item) {
+                    $product = $this->productModel->getProductById($item['id_produit']);
+                    $item['images'] = $product ? json_decode($product['images'], true) ?: [] : [];
+                    $item['stock'] = $product ? (int)$product['stock'] : 0;
+                    $_SESSION['panier'][$item['id_produit']] = $item;
+                }
+                $_SESSION['panier_synchronized'] = true;
+                $totaux = $this->cartModel->calculTotaux($panier_db);
+                $_SESSION['cart_count'] = $totaux['cart_count'];
+            } else {
+                if (!isset($_SESSION['panier'])) {
+                    $_SESSION['panier'] = [];
+                }
+                if (isset($_SESSION['panier'][$produit_id])) {
+                    $_SESSION['panier'][$produit_id]['quantite'] += $quantite;
+                } else {
+                    $_SESSION['panier'][$produit_id] = [
+                        'id_produit' => $produit_id,
+                        'nom' => $nom,
+                        'quantite' => $quantite,
+                        'prix_original' => $prix_original,
+                        'promo_appliquee' => $promo_appliquee,
+                        'images' => $images,
+                        'stock' => (int)$product['stock']
+                    ];
+                }
+                $totaux = $this->cartModel->calculTotaux(array_values($_SESSION['panier']));
+                $_SESSION['cart_count'] = $totaux['cart_count'];
+            }
+            echo json_encode([
+                'success' => true,
+                'cart_count' => $_SESSION['cart_count'],
+                'sous_total' => $totaux['sous_total'],
+                'total' => $totaux['total'],
+                'message' => "$nom ajouté au panier"
+            ]);
+        } catch (Exception $e) {
+            error_log("Erreur dans enregister : " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
     }
-    exit;
-}
 
     /**
      * Afficher le panier
      */
     public function afficher() {
-    $panier = [];
-    $totaux = ['sous_total' => '0', 'total' => '0', 'cart_count' => 0];
+        $panier = [];
+        $totaux = ['sous_total' => '0', 'total' => '0', 'cart_count' => 0];
 
-    if (isset($_SESSION['id'])) {
-        $this->cartModel->user_id = $_SESSION['id'];
-        // Fusionner uniquement si nécessaire (par exemple, après connexion)
-        if (!empty($_SESSION['panier']) && !isset($_SESSION['panier_synchronized'])) {
-            $this->cartModel->fusionnerPaniers($_SESSION['panier']);
+        if (isset($_SESSION['id'])) {
+            $this->cartModel->user_id = $_SESSION['id'];
+            if (!empty($_SESSION['panier']) && !isset($_SESSION['panier_synchronized'])) {
+                $this->cartModel->fusionnerPaniers($_SESSION['panier']);
+                $_SESSION['panier'] = [];
+                $_SESSION['panier_synchronized'] = true;
+            }
+            $panier = $this->cartModel->loadFromDb($_SESSION['id']);
             $_SESSION['panier'] = [];
-            $_SESSION['panier_synchronized'] = true; // Marquer comme synchronisé
+            foreach ($panier as &$item) {
+                $product = $this->productModel->getProductById($item['id_produit']);
+                $item['images'] = $product ? json_decode($product['images'], true) ?: [] : [];
+                $item['stock'] = $product ? (int)$product['stock'] : 0;
+                $_SESSION['panier'][$item['id_produit']] = $item;
+            }
+            $totaux = $this->cartModel->calculTotaux($panier);
+            $_SESSION['cart_count'] = $totaux['cart_count'];
+        } else {
+            $panier = array_values($_SESSION['panier'] ?? []);
+            foreach ($panier as &$item) {
+                $product = $this->productModel->getProductById($item['id_produit']);
+                $item['images'] = $product ? json_decode($product['images'], true) ?: [] : [];
+                $item['stock'] = $product ? (int)$product['stock'] : 0;
+            }
+            $totaux = $this->cartModel->calculTotaux($panier);
+            $_SESSION['cart_count'] = $totaux['cart_count'];
         }
-        // Charger le panier depuis la base
-        $panier = $this->cartModel->loadFromDb($_SESSION['id']);
-        $_SESSION['panier'] = [];
-        foreach ($panier as $item) {
-            $_SESSION['panier'][$item['id_produit']] = $item;
-        }
-        $totaux = $this->cartModel->calculTotaux($panier);
-        $_SESSION['cart_count'] = $totaux['cart_count'];
-    } else {
-        $panier = array_values($_SESSION['panier'] ?? []);
-        $totaux = $this->cartModel->calculTotaux($panier);
-        $_SESSION['cart_count'] = $totaux['cart_count'];
-    }
 
-    $sous_total = str_replace(' ', '', $totaux['sous_total']);
-    include 'views/cart/cart.php';
-}
+        $sous_total = str_replace(' ', '', $totaux['sous_total']);
+        include 'views/cart/cart.php';
+    }
 
     /**
      * Mettre à jour la quantité d'un produit
