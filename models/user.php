@@ -1,48 +1,49 @@
 <?php 
-
 class usermodel {
-	public $nom;
-	public $email;
-	public $telephone;
-	public $mdp;
-	public $photo_profil;
-	public $type_photo;
-	public $statut; 
-	// pour la db
-	public $con;
+    public $nom;
+    public $email;
+    public $login;
+    public $telephone;
+    public $mdp;
+    public $photo_profil;
+    public $type_photo;
+    public $statut;
+    public $con;
 
-	//constructeur
-	function __construct(){
-		//connexion à la base de donnée
-		include 'config/database.php';
-	} 
+    // Constructeur
+    function __construct() {
+        include 'config/database.php';
+        // Assurez-vous que config/database.php définit $this->con comme un objet PDO
+    }
 
-	//Methodes
-	public function AjouterUser(){
-		$req = $this->con->prepare("INSERT INTO users Values(null, :nom, :email, :telephone, :mdp, :photo_profil, :statut )");
-		$req->BindParam(":nom", $this->nom);
-		$req->BindParam(":email", $this->email);
-		$req->BindParam(":telephone", $this->telephone);
-		$req->BindParam(":mdp", $this->mdp);
-		$req->BindParam(":photo_profil", $this->photo_profil);
-		$req->BindParam(":statut", $this->statut);
-		$sol = $req->execute();
-		return $sol;
- 
+    // Empêche la sérialisation de $con
+    
 
-	}
+    
 
-	public function connexion()
-	{
+    // Méthodes existantes
+    public function AjouterUser() {
+        $req = $this->con->prepare("INSERT INTO users VALUES (NULL, :nom, :email, :telephone, :mdp, :photo_profil, :statut)");
+        $req->bindParam(":nom", $this->nom);
+        $req->bindParam(":email", $this->email);
+        $req->bindParam(":telephone", $this->telephone);
+        $req->bindParam(":mdp", $this->mdp);
+        $req->bindParam(":photo_profil", $this->photo_profil);
+        $req->bindParam(":statut", $this->statut);
+        $sol = $req->execute();
+        return $sol;
+    }
 
-		$req = $this->con->prepare("SELECT * FROM users WHERE email=:email and mdp=:mdp");
-		$req->bindparam(":email",$this->email);
-		$req->bindparam(":mdp",$this->mdp);
-		$req->execute();
-		$sol=$req->fetchall();
-		return $sol;
+    public function login() {
+    $req = $this->con->prepare("SELECT * FROM users WHERE login = :login AND mdp = :mdp");
+    $req->bindParam(":login", $this->login);
+    $req->bindParam(":mdp", $this->mdp);
+    $req->execute();
+    $sol = $req->fetch(PDO::FETCH_ASSOC);
+    
+    return $sol;
+    }
+  
 
-	} 
 }
-
 ?>

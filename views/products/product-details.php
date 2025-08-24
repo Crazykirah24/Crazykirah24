@@ -6,6 +6,9 @@
   <title><?php echo htmlspecialchars($product['nom_produit']); ?> - Fournitures Universitaires</title>
   <?php include 'config/home.php'; ?>
   
+  <style>
+    
+  </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
   <?php include 'config/menu/customers/header.php'; ?>
@@ -28,36 +31,48 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6">
         
         <!-- Section Images -->
-        <div class="space-y-4">
+        <div class="image-gallery">
           <?php
           $images = json_decode($product['images'], true) ?: [];
-          $mainImage = !empty($images) ? '/projet_web/' . $images[0] : 'https://via.placeholder.com/600x400?text=Image+indisponible';
+          $mainImage = !empty($images) ? '/projet_web/' . $images[0] : 'https://via.placeholder.com/400x400?text=Image+indisponible';
           ?>
           
-          <!-- Image principale -->
-          <div class="bg-gray-50 rounded-lg p-4">
-            <img id="mainImage" src="<?php echo htmlspecialchars($mainImage); ?>" 
-                 alt="<?php echo htmlspecialchars($product['nom_produit']); ?>" 
-                 class="product-image w-full max-w-md mx-auto rounded">
+          <!-- Miniatures -->
+          <div class="thumbnails-container">
+            <?php if (!empty($images)): ?>
+              <?php foreach ($images as $index => $image): ?>
+                <img src="/projet_web/<?php echo htmlspecialchars($image); ?>" 
+                     alt="Thumbnail <?php echo $index + 1; ?>" 
+                     class="thumbnail w-16 h-16 object-cover rounded cursor-pointer <?php echo $index === 0 ? 'active' : ''; ?>"
+                     onclick="changeMainImage(this.src, this)">
+              <?php endforeach; ?>
+            <?php else: ?>
+              <!-- Images par défaut si aucune image -->
+              <img src="https://via.placeholder.com/80x80?text=1" 
+                   alt="Thumbnail 1" 
+                   class="thumbnail w-16 h-16 object-cover rounded cursor-pointer active"
+                   onclick="changeMainImage('https://via.placeholder.com/400x400?text=Image+1', this)">
+              <img src="https://via.placeholder.com/80x80?text=2" 
+                   alt="Thumbnail 2" 
+                   class="thumbnail w-16 h-16 object-cover rounded cursor-pointer"
+                   onclick="changeMainImage('https://via.placeholder.com/400x400?text=Image+2', this)">
+            <?php endif; ?>
           </div>
           
-          <!-- Miniatures -->
-          <?php if (count($images) > 1): ?>
-          <div class="flex space-x-2 overflow-x-auto pb-2">
-            <?php foreach ($images as $index => $image): ?>
-              <img src="/projet_web/<?php echo htmlspecialchars($image); ?>" 
-                   alt="Thumbnail <?php echo $index + 1; ?>" 
-                   class="thumbnail w-16 h-16 object-cover rounded cursor-pointer flex-shrink-0 <?php echo $index === 0 ? 'active' : ''; ?>"
-                   onclick="changeMainImage(this.src, this)">
-            <?php endforeach; ?>
+          <!-- Image principale -->
+          <div class="main-image-container">
+            <div class="bg-gray-50 rounded-lg p-4 border">
+              <img id="mainImage" src="<?php echo htmlspecialchars($mainImage); ?>" 
+                   alt="<?php echo htmlspecialchars($product['nom_produit']); ?>" 
+                   class="product-image-main w-full rounded">
+            </div>
           </div>
-          <?php endif; ?>
         </div>
 
         <!-- Section Détails -->
         <div class="space-y-6">
           <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
               <?php echo htmlspecialchars($product['nom_produit']); ?>
             </h1>
             
@@ -111,7 +126,7 @@
           <div class="space-y-2">
             <?php 
             $stockLevel = $product['stock'];
-            $stockPercentage = min(($stockLevel / 100) * 100, 100); // Assumant un stock max de 100
+            $stockPercentage = min(($stockLevel / 100) * 100, 100);
             $stockStatus = $stockLevel > 10 ? 'En stock' : ($stockLevel > 0 ? 'Stock limité' : 'Rupture de stock');
             $stockColor = $stockLevel > 10 ? 'text-green-600' : ($stockLevel > 0 ? 'text-orange-600' : 'text-red-600');
             ?>
@@ -130,9 +145,8 @@
             <?php endif; ?>
           </div>
 
-          <!-- Quantité et Panier -->
+          <!-- Panier -->
           <div class="space-y-4">
-
             <button class="add-to-cart-btn w-full"
                     data-id="<?php echo $product['id']; ?>"
                     data-nom="<?php echo htmlspecialchars($product['nom_produit']); ?>"
@@ -176,8 +190,10 @@
       <!-- Description détaillée -->
       <div class="border-t border-gray-200 p-6">
         <h2 class="text-xl font-bold text-gray-900 mb-4">Description du produit</h2>
-        <div class="prose max-w-none text-gray-600">
-          <?php echo nl2br(htmlspecialchars($product['description'])); ?>
+        <div class="description-section">
+          <div class="text-gray-600 leading-relaxed">
+            <?php echo nl2br(htmlspecialchars($product['description'])); ?>
+          </div>
         </div>
       </div>
     </div>

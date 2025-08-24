@@ -1,5 +1,9 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+ <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+ <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="http://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet">
     <script>tailwind.config={theme:{extend:{colors:{primary:'#4f46e5',secondary:'#6366f1'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +19,7 @@
         font-family: 'Inter', sans-serif;
         background-color: #f9fafb;
     }
+
 
     .sidebar-item.active {
         background-color: rgba(79, 70, 229, 0.1);
@@ -370,4 +375,233 @@
             });
         });
     </script>
+    <style>
+    /* CSS pour les cartes produits optimisées */
+
+/* Limitation du nombre de lignes pour le titre */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+/* Styles de base pour les cartes */
+.product-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Effet hover pour les cartes style Jumia */
+.product-card:hover {
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -5px rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Classe pour l'effet hover scale réduit */
+.hover\:scale-102:hover {
+    transform: scale(1.02);
+}
+
+/* Animation pour les images */
+.product-card img {
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Styles pour les grilles responsives */
+.grid-responsive {
+    display: grid;
+    gap: 1.5rem;
+}
+
+/* Grille pour catégories populaires (4 colonnes sur desktop) */
+.categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+    .categories-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Grille pour offres et meilleures ventes (3 colonnes) */
+.offers-grid, .bestsellers-grid {
+    grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+    .offers-grid, .bestsellers-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .offers-grid, .bestsellers-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Grille pour recommandations (4 colonnes) */
+.recommended-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 640px) {
+    .recommended-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .recommended-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Badges promotionnels */
+.promotion-badge {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Indicateur de stock */
+.stock-indicator {
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* Étoiles avec animation au hover */
+.star-rating span {
+    transition: transform 0.2s ease;
+}
+
+.product-card:hover .star-rating span {
+    transform: scale(1.1);
+}
+
+/* Prix avec animation */
+.price-display {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+/* Animation pour les badges de stock */
+.stock-badge {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Tailles des cartes style Jumia */
+.product-card {
+    height: 380px;
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.product-card.small-card {
+    height: 340px;
+    max-width: 260px;
+}
+
+/* Image container avec ratio fixe */
+.product-image-container {
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card.small-card .product-image-container {
+    height: 180px;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 640px) {
+    .product-card {
+        height: 320px;
+        max-width: 100%;
+        min-width: 160px;
+    }
     
+    .product-card.small-card {
+        height: 300px;
+        max-width: 100%;
+        min-width: 150px;
+    }
+
+    .product-image-container {
+        height: 160px;
+    }
+
+    .product-card.small-card .product-image-container {
+        height: 140px;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1023px) {
+    .product-card {
+        height: 360px;
+        max-width: 250px;
+    }
+    
+    .product-card.small-card {
+        height: 320px;
+        max-width: 230px;
+    }
+
+    .product-image-container {
+        height: 180px;
+    }
+
+    .product-card.small-card .product-image-container {
+        height: 160px;
+    }
+}
+
+/* État désactivé pour les produits en rupture */
+.product-card.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.product-card.disabled:hover {
+    transform: none;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Overlay moderne */
+.modern-overlay {
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.05) 100%
+    );
+    transition: all 0.3s ease;
+}
+</style>

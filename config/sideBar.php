@@ -58,7 +58,7 @@
                     <?php if(empty($_SESSION['photo_profil'])){  ?>
                     <img class="h-8 w-8 rounded-full" src="https://readdy.ai/api/search-image?query=professional%20headshot%20of%20a%20young%20business%20man%20with%20short%20hair%2C%20wearing%20a%20business%20suit%2C%20high%20quality%20portrait%20photo&width=200&height=200&seq=123&orientation=squarish" alt="Photo de profil">
                      <?php }else{ ?>
-                     <img class="h-8 w-8 rounded-full" src="data:<?php echo $_SESSION['type_photo']; ?>;base64,<?php echo base64_encode($_SESSION['photo_profil']); ?>"  alt="Photo de profil">
+                     <img class="h-8 w-8 rounded-full" src="data:<?php echo $_SESSION['type']; ?>;base64,<?php echo base64_encode($_SESSION['photo_profil']); ?>"  alt="Photo de profil">
                       <?php } ?>
                     <div class="ml-3">
                         <p class="text-sm font-medium text-gray-700"> <?php echo $_SESSION['email'];?></p>

@@ -94,6 +94,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
+
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deleteConfirmText = document.getElementById('deleteConfirmText');
+
     // Fonction pour mettre à jour l'affichage
     function updateCartDisplay(data) {
         const cartCount = document.getElementById('cart-count');
@@ -246,14 +252,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Gestion de la suppression
-    document.querySelectorAll('.remove-btn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            if (!confirm('Voulez-vous vraiment supprimer ce produit de votre panier ?')) return;
+    // Gestion de la suppression avec modale de confirmation
+document.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const produitId = parseInt(this.dataset.produitId);
+        const productName = this.dataset.productName || "cet article"; // récupère le nom du produit si dispo
+        const productCard = this.closest('.product-card');
 
-            const produitId = parseInt(this.dataset.produitId);
-            const productCard = this.closest('.product-card');
+        // Affiche le texte dans la modale
+        deleteConfirmText.textContent = `Êtes-vous sûr de vouloir supprimer ${productName} de votre panier ?`;
+        deleteConfirmModal.classList.remove('hidden');
 
+        // Quand on confirme
+        confirmDeleteBtn.onclick = async function () {
             try {
                 const response = await fetch('/projet_web/Carts/removeItem', {
                     method: 'POST',
@@ -271,21 +282,54 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         productCard.remove();
                         updateCartDisplay(data);
-                        showToast('Produit supprimé');
+                        showToast('Produit supprimé avec succès !');
+                        deleteConfirmModal.classList.add('hidden');
                         if (data.cart_count === 0) {
                             setTimeout(() => location.reload(), 600);
                         }
                     }, 500);
                 } else {
-                    showToast(data.message || 'Erreur de suppression', 'error');
+                    showToast(data.message || 'Erreur lors de la suppression', 'error');
                 }
             } catch (error) {
                 console.error("Erreur réseau :", error);
                 showToast(`Erreur réseau : ${error.message}`, 'error');
             }
-        });
+        };
     });
 });
+
+    // Bouton Annuler de la modale
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', function () {
+        deleteConfirmModal.classList.add('hidden');
+    });
+}
+
+});
+
 </script>
 
-
+<script>
+    function changeMainImage(src, thumbnail) {
+      document.getElementById('mainImage').src = src;
+      
+      // Remove active class from all thumbnails
+      document.querySelectorAll('.thumbnail').forEach(thumb => {
+        thumb.classList.remove('active');
+      });
+      
+      // Add active class to clicked thumbnail
+      thumbnail.classList.add('active');
+    }
+    
+    
+    // Auto-ajustement des miniatures si pas d'images
+    document.addEventListener('DOMContentLoaded', function() {
+      const thumbnails = document.querySelectorAll('.thumbnail');
+      if (thumbnails.length === 0) {
+        // Si pas d'images, on peut ajouter des images par défaut
+        console.log('Aucune miniature trouvée');
+      }
+    });
+  </script>

@@ -86,13 +86,13 @@
                             </div>
                         </div>
                         <div class="flex-1 min-w-[200px]">
-                            <label for="statusFilter" class="block text-xs font-medium text-gray-500 mb-1">Statut</label>
+                            <label for="statusFilter" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
                             <div class="relative">
                                 <select id="statusFilter" class="w-full px-3 py-2 pr-8 border border-gray-300 rounded text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                                     <option value="">Tous les statuts</option>
-                                    <option value="active">Actif</option>
+                                    <option value="publié">Publié</option>
                                     <option value="inactive">Inactif</option>
-                                    <option value="draft">Brouillon</option>
+                                    <option value="brouillon">Brouillon</option>
                                 </select>
                                 <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                                     <i class="ri-arrow-down-s-line text-gray-400"></i>
@@ -450,9 +450,9 @@
                                         <label for="productStatus" class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                                         <div class="relative">
                                             <select id="productStatus" name="sai_statut" class="w-full px-4 py-2 pr-8 border border-gray-300 rounded appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                                                <option value="active">publié</option>
+                                                <option value="publié">publié</option>
                                                 <option value="inactive">Inactif</option>
-                                                <option value="draft">Brouillon</option>
+                                                <option value="brouillon">Brouillon</option>
                                             </select>
                                             <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                                                 <i class="ri-arrow-down-s-line text-gray-400"></i>
